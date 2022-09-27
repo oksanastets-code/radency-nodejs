@@ -14,11 +14,7 @@ try {
     }
   });
 } catch (error) {
-  res.status(500).json({
-    status: "error",
-    code: 500,
-    message: "Server error"
-  })
+  next(error)
 }
 })
 
@@ -26,6 +22,11 @@ router.get('/:noteId', async (req, res, next) => {
   try {
     const { noteId } = req.params;
     const result = await notesOperations.getNoteById(noteId);
+    if (!result) {
+      const error = new Error(`Note with id=${noteId} not found`)
+      error.status = 404;
+      throw error;
+    }
     res.json({
        status: "success",
     code: 200,
@@ -34,17 +35,26 @@ router.get('/:noteId', async (req, res, next) => {
     }
     })
   } catch (error) {
-    res.status(500).json({
-    status: "error",
-    code: 500,
-    message: "Server error"
-  })
+    next(error);  
+   
   }
   
 })
 
 router.post('/', async (req, res, next) => {
-  res.json({ message: 'template message' })
+try {
+  const result = await notesOperations.addNote(req.body);
+  res.status(201).json({
+    status: "success",
+    code: 201,
+    data: {
+      result
+    }
+  })
+} catch (error) {
+  next(error)
+}
+ 
 })
 
 router.delete('/:noteId', async (req, res, next) => {
